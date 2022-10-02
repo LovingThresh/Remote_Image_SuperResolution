@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+# @Time    : 2022/10/2 20:08
+# @Author  : LiuYe
+# @Email   : csu1704liuye@163.com | sy2113205@buaa.edu.cn
+# @File    : data_loader.py
+# @Software: PyCharm
+import os
+
+import cv2
+import numpy as np
+from torch.utils.data import Dataset
+import albumentations as A
+
+
+# def data_preparation(dataroot, scale, save_root):
+#     file_folders = os.listdir(dataroot)
+#     for file_folder in file_folders:
+#         file_list = os.listdir(os.path.join(dataroot, file_folder))
+#         os.mkdir(os.path.join(save_root, file_folder))
+#         for file in file_list:
+#             image = cv2.imread(os.path.join(dataroot, file_folder, file))
+#             image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+#             H, W = image.shape[:2]
+#             L_image = cv2.resize(image, (int(H / scale), int(W / scale)))
+#             L_image = cv2.cvtColor(L_image, cv2.COLOR_YCrCb2BGR)
+#             cv2.imwrite(os.path.join(save_root, file_folder, file), L_image)
+#
+#
+# AID_root = 'L:/2022_AID/NWPU-RESISC45'
+# Scale = 4
+# Save_root = 'L:/2022_AID/NWPU-RESISC45_x4'
+# os.mkdir(Save_root)
+# data_preparation(AID_root, Scale, Save_root)
+#
+# with open(r'L:/2022_AID/NWPU-RESISC45.txt', 'w') as f:
+#     file_folders = os.listdir(AID_root)
+#     for file_folder in file_folders:
+#         file_list = os.listdir(os.path.join(AID_root, file_folder))
+#         for file in file_list:
+#             f.write(os.path.join(file_folder, file) + '\n')
+
+
+transformer = A.Compose([
+    A.HorizontalFlip(p=0.5),
+    A.VerticalFlip(p=0.5),
+    A.RandomRotate90(p=0.5),
+    A.RandomCrop(32, 32)
+])
+
+class PairedImageDataset(Dataset):
+    """Paired image dataset for image restoration.
+    Read LQ (Low Quality, e.g. LR (Low Resolution), blurry, noisy, etc) and GT image pairs.
+    There are three modes:
+    1. **lmdb**: Use lmdb files. If opt['io_backend'] == lmdb.
+    2. **meta_info_file**: Use meta information file to generate paths. \
+        If opt['io_backend'] != lmdb and opt['meta_info_file'] is not None.
+    3. **folder**: Scan folders to generate paths. The rest.
+    """
+
+    def __init__(self, dataroot_gt, dataroot_lq, gt_size, transform, load_txt):
+        self.dataroot_gt = dataroot_gt
+        self.dataroot_lq = dataroot_lq
+        self.gt_size = gt_size
+        self.transform = transform
+        self.load_txt = load_txt
+        self.filelist = []
+        with open(self.load_txt, 'r') as f:
+            for line in f.readlines():
+                line = line.strip('\n')  # 去掉列表中每一个元素的换行符
+                self.filelist.append(line)
+
+    def __getitem__(self, index):
+        lq_path = os.path.join(self.dataroot_lq, self.filelist[index])
+        gt_path = os.path.join(self.dataroot_gt, self.filelist[index])
+
+        img_lq = cv2.imread(lq_path)
+        img_lq = cv2.cvtColor(img_lq, cv2.COLOR_BGR2RGB)
+        img_gt = cv2.imread(gt_path)
+        img_gt = cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB)
+
+        if self.transform:
+
+        return {'lq': img_lq, 'gt': img_gt, 'lq_path': lq_path, 'gt_path': gt_path}
+
+    def __len__(self):
+        return len(self.filelist)
