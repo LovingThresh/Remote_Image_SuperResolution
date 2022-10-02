@@ -7,10 +7,11 @@
 import os
 
 import cv2
+import random
 import numpy as np
+from torchvision import transforms
 from torch.utils.data import Dataset
 import albumentations as A
-
 
 # def data_preparation(dataroot, scale, save_root):
 #     file_folders = os.listdir(dataroot)
@@ -43,9 +44,9 @@ import albumentations as A
 transformer = A.Compose([
     A.HorizontalFlip(p=0.5),
     A.VerticalFlip(p=0.5),
-    A.RandomRotate90(p=0.5),
-    A.RandomCrop(32, 32)
+    A.RandomRotate90(p=0.5)
 ])
+
 
 class PairedImageDataset(Dataset):
     """Paired image dataset for image restoration.
@@ -57,10 +58,11 @@ class PairedImageDataset(Dataset):
     3. **folder**: Scan folders to generate paths. The rest.
     """
 
-    def __init__(self, dataroot_gt, dataroot_lq, gt_size, transform, load_txt):
+    def __init__(self, dataroot_gt, dataroot_lq, gt_size, scale, transform, load_txt):
         self.dataroot_gt = dataroot_gt
         self.dataroot_lq = dataroot_lq
         self.gt_size = gt_size
+        self.scale = scale
         self.transform = transform
         self.load_txt = load_txt
         self.filelist = []
@@ -79,6 +81,21 @@ class PairedImageDataset(Dataset):
         img_gt = cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB)
 
         if self.transform:
+            img_label = transformer(image=img_lq, mask=img_gt)
+            img_lq, img_gt = img_label['image'], img_label['mask']
+        if self.scale:
+            w, h = self.gt_size
+            img_w, img_h = img_gt.shape[0], img_gt.shape[1]
+            x, y = random.randint(0, img_w - w), random.randint(0, img_h - h)
+            img_gt = img_gt[x:x + w, y:y + h, :]
+            img_lq = img_lq[int(x / self.scale):int(x / self.scale) + int(w / self.scale),
+                            int(y / self.scale):int(y / self.scale) + int(h / self.scale)]
+
+        img_gt, img_lq = \
+            transforms.ToTensor()(img_gt), transforms.ToTensor()(img_lq)
+        img_gt, img_lq = \
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img_gt), \
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img_lq)
 
         return {'lq': img_lq, 'gt': img_gt, 'lq_path': lq_path, 'gt_path': gt_path}
 
