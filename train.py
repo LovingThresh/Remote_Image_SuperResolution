@@ -31,7 +31,7 @@ def get_Remote_SuperResolution_Dataset(batch_size, gt_size, scale, lq_train_root
     train_dataset = PairedImageDataset(r'L:\2022_AID\AID', lq_train_root, gt_size, scale, transform=transformer,
                                        load_txt=r'L:\2022_AID\AID.txt')
     val_dataset = PairedImageDataset(r'L:\2022_AID\NWPU-RESISC45', lq_val_root, gt_size, scale, transform=None,
-                                     load_txt=r'L:\2022_AID\NWPU-RESISC45.txt')
+                                     load_txt=r'L:\2022_AID\NWPU-RESISC45_validation.txt')
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=True)
@@ -329,7 +329,7 @@ def val_epoch(valid_model, val_load, Device, loss_fn, eval_fn, epoch, Epochs, mo
     valid_loss_mean = {}
     valid_eval_mean = {}
 
-    for batch in val_load:
+    for batch in tqdm(val_load):
         it = it + 1
         inputs, target = batch['lq'], batch['gt']
 
@@ -385,7 +385,7 @@ def val_generator_epoch(train_model_G, train_model_D,
     training_loss_mean_G = {}
     training_eval_mean_G = {}
 
-    for batch in val_load:
+    for batch in tqdm(val_load):
         it = it + 1
         train_model_G.zero_grad()
         train_model_D.zero_grad()

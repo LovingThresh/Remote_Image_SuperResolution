@@ -28,18 +28,19 @@ import albumentations as A
 #             cv2.imwrite(os.path.join(save_root, file_folder, file), L_image)
 #
 #
-# AID_root = 'L:/2022_AID/NWPU-RESISC45'
+AID_root = 'L:/2022_AID/NWPU-RESISC45'
 # Scale = 4
 # Save_root = 'L:/2022_AID/NWPU-RESISC45_x4'
 # os.mkdir(Save_root)
 # data_preparation(AID_root, Scale, Save_root)
-#
-# with open(r'L:/2022_AID/NWPU-RESISC45.txt', 'w') as f:
-#     file_folders = os.listdir(AID_root)
-#     for file_folder in file_folders:
-#         file_list = os.listdir(os.path.join(AID_root, file_folder))
-#         for file in file_list:
-#             f.write(os.path.join(file_folder, file) + '\n')
+
+with open(r'L:/2022_AID/NWPU-RESISC45_validation.txt', 'w') as f:
+    file_folders = os.listdir(AID_root)
+    for file_folder in file_folders:
+        file_list = os.listdir(os.path.join(AID_root, file_folder))
+        for file in file_list:
+            if random.randint(0, 10) == 9:
+                f.write(os.path.join(file_folder, file) + '\n')
 
 
 class PairedImageDataset(Dataset):

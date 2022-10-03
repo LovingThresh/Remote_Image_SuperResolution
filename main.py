@@ -42,12 +42,12 @@ hyper_params = {
     "mode": 'image',
     "ex_number": 'EDSR_3080Ti_Image',
     "scale": 2,
-    "batch_size": 4,
+    "batch_size": 8,
     "gt_size": (3, 128, 128),
     "lq_train_root": 'L:/2022_AID/AID_x2',
     "lq_val_root": 'L:/2022_AID/NWPU-RESISC45_x2',
     "learning_rate": 1e-4,
-    "epochs": 1,
+    "epochs": 100,
     "threshold": 24,
     "checkpoint": False,
     "Img_Recon": True,
@@ -105,7 +105,7 @@ act_type = 'prelu'
 
 generator = ECBSR(m_ecbsr, c_ecbsr, idt_ecbsr, act_type, scale, colors)
 
-discriminator = define_D(3, 64, 'basic', use_sigmoid=True, norm='instance')
+discriminator = define_D(1, 64, 'basic', use_sigmoid=True, norm='instance')
 
 # ===============================================================================
 # =                                    Setting                                  =
@@ -114,8 +114,7 @@ discriminator = define_D(3, 64, 'basic', use_sigmoid=True, norm='instance')
 loss_function_D = {'loss_function_dis': nn.BCELoss()}
 loss_function_G_ = {'loss_function_dis': nn.BCELoss()}
 
-loss_function_G = {'content_loss': nn.L1Loss(),
-                   'perceptual_loss': perceptual_loss}
+loss_function_G = {'content_loss': nn.L1Loss()}
 
 eval_function_psnr = torchmetrics.functional.image.psnr.peak_signal_noise_ratio
 eval_function_ssim = torchmetrics.functional.image.ssim.structural_similarity_index_measure

@@ -6,6 +6,7 @@
 # @Software: PyCharm
 import cv2
 import torch
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -75,42 +76,44 @@ def visualize_pair(train_loader, lq_size, gt_size, plot_switch=True, mode='image
 def visualize_save_pair(val_model: torch.nn.Module, train_loader, save_path, epoch, num=0, mode='image'):
 
     a = next(iter(train_loader))
-    i = 1
+    i = random.randint(0, 3)
     input_tensor = a['lq_RGB'][0 + i: 1 + i]
     output_tensor = a['gt_RGB'][0 + i:1 + i]
 
     input_size = (input_tensor.shape[2], input_tensor.shape[3])
     crop_size  = (output_tensor.shape[2], output_tensor.shape[3])
 
-    input_tensor_numpy = input_tensor.numpy()
+    input_tensor_numpy = input_tensor.cpu().numpy()
     input_tensor_numpy = input_tensor_numpy.transpose(0, 2, 3, 1)
     input_tensor_numpy = input_tensor_numpy.reshape(input_size[0], input_size[1], 3)
-    input_tensor_numpy = cv2.cvtColor(input_tensor_numpy, cv2.COLOR_BGR2RGB)
     input_tensor_numpy = (input_tensor_numpy + 1) / 2
-    cv2.imwrite('{}/{}_input.jpg'.format(save_path, epoch + num), np.uint8(input_tensor_numpy * 255))
+    input_tensor_numpy = np.uint8(input_tensor_numpy * 255)
+    cv2.imwrite('{}/{}_input.jpg'.format(save_path, epoch + num), cv2.cvtColor(input_tensor_numpy, cv2.COLOR_YCrCb2RGB))
 
-    output_tensor_numpy = output_tensor.numpy()
+    output_tensor_numpy = output_tensor.cpu().numpy()
     output_tensor_numpy = output_tensor_numpy.transpose(0, 2, 3, 1)
-    if mode == 'image':
-        output_tensor_numpy = output_tensor_numpy.reshape(crop_size[0], crop_size[1], 3)
-        output_tensor_numpy = cv2.cvtColor(output_tensor_numpy, cv2.COLOR_BGR2RGB)
-        output_tensor_numpy = (output_tensor_numpy + 1) / 2
-    else:
-        output_tensor_numpy = output_tensor_numpy.reshape(crop_size[0], crop_size[1], 2)
-        output_tensor_numpy = output_tensor_numpy[:, :, 1]
-    cv2.imwrite('{}/{}_output.jpg'.format(save_path, epoch + num), np.uint8(output_tensor_numpy * 255))
+
+    output_tensor_numpy = output_tensor_numpy.reshape(crop_size[0], crop_size[1], 3)
+    output_tensor_numpy = (output_tensor_numpy + 1) / 2
+    output_tensor_numpy = np.uint8(output_tensor_numpy * 255)
+    cv2.imwrite('{}/{}_output.jpg'.format(save_path, epoch + num), cv2.cvtColor(output_tensor_numpy, cv2.COLOR_YCrCb2RGB))
 
     val_model.train(True)
+
+    input_tensor = a['lq'][0 + i: 1 + i]
     predict_tensor = val_model(input_tensor.cuda())
     predict_tensor_numpy = predict_tensor.detach().cpu().numpy()
+
     predict_tensor_numpy = predict_tensor_numpy.transpose(0, 2, 3, 1)
     if predict_tensor_numpy.shape[-1] == 2:
         predict_tensor_numpy = predict_tensor_numpy[:, :, :, 1:].repeat(3, axis=-1)
-    predict_tensor_numpy = predict_tensor_numpy.reshape(crop_size[0], crop_size[1], 3)
-    if mode == 'image':
-        predict_tensor_numpy = cv2.cvtColor(predict_tensor_numpy, cv2.COLOR_BGR2RGB)
-        predict_tensor_numpy = (predict_tensor_numpy + 1) / 2
-    cv2.imwrite('{}/{}_predict.jpg'.format(save_path, epoch + num), np.uint8(predict_tensor_numpy * 255))
+    predict_tensor_numpy = predict_tensor_numpy.reshape(crop_size[0], crop_size[1])
+
+    predict_tensor_numpy = (predict_tensor_numpy + 1) / 2
+    predict_tensor_numpy = np.uint8(predict_tensor_numpy * 255)
+    output_tensor_numpy[:, :, 0] = predict_tensor_numpy
+    predict_tensor_numpy = cv2.cvtColor(output_tensor_numpy, cv2.COLOR_YCrCb2RGB)
+    cv2.imwrite('{}/{}_predict.jpg'.format(save_path, epoch + num), predict_tensor_numpy)
 
 
 def image2tensor(image_path):
