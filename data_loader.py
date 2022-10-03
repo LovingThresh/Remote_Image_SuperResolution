@@ -7,6 +7,7 @@
 import os
 
 import cv2
+import torch
 import random
 import numpy as np
 from torchvision import transforms
@@ -41,13 +42,6 @@ import albumentations as A
 #             f.write(os.path.join(file_folder, file) + '\n')
 
 
-transformer = A.Compose([
-    A.HorizontalFlip(p=0.5),
-    A.VerticalFlip(p=0.5),
-    A.RandomRotate90(p=0.5)
-])
-
-
 class PairedImageDataset(Dataset):
     """Paired image dataset for image restoration.
     Read LQ (Low Quality, e.g. LR (Low Resolution), blurry, noisy, etc) and GT image pairs.
@@ -77,12 +71,15 @@ class PairedImageDataset(Dataset):
 
         img_lq = cv2.imread(lq_path)
         img_lq = cv2.cvtColor(img_lq, cv2.COLOR_BGR2RGB)
+        img_lq = cv2.cvtColor(img_lq, cv2.COLOR_RGB2YCrCb)
         img_gt = cv2.imread(gt_path)
         img_gt = cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB)
+        img_gt = cv2.cvtColor(img_gt, cv2.COLOR_RGB2YCrCb)
 
         if self.transform:
-            img_label = transformer(image=img_lq, mask=img_gt)
+            img_label = self.transform(image=img_lq, mask=img_gt)
             img_lq, img_gt = img_label['image'], img_label['mask']
+
         if self.scale:
             w, h = self.gt_size
             img_w, img_h = img_gt.shape[0], img_gt.shape[1]
@@ -97,7 +94,7 @@ class PairedImageDataset(Dataset):
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img_gt), \
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img_lq)
 
-        return {'lq': img_lq, 'gt': img_gt, 'lq_path': lq_path, 'gt_path': gt_path}
+        return {'lq': img_lq[0:1], 'gt': img_gt[0:1], 'lq_RGB': img_lq, 'gt_RGB': img_gt, 'lq_path': lq_path, 'gt_path': gt_path}
 
     def __len__(self):
         return len(self.filelist)
