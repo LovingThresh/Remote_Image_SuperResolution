@@ -10,7 +10,6 @@ import random
 
 import torchmetrics
 import torchsummary
-import numpy as np
 import torch.optim as optim
 import torch.backends.cudnn
 
@@ -26,10 +25,10 @@ print(f"Using {device} device")
 
 train_comet = False
 
-random.seed(48)
-np.random.seed(48)
-torch.manual_seed(48)
-torch.cuda.manual_seed_all(48)
+random.seed(24)
+np.random.seed(24)
+torch.manual_seed(24)
+torch.cuda.manual_seed_all(24)
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -42,12 +41,13 @@ hyper_params = {
     "mode": 'image',
     "ex_number": 'EDSR_3080Ti_Image',
     "scale": 2,
-    "batch_size": 8,
+    "batch_size": 128,
     "gt_size": (3, 128, 128),
     "lq_train_root": 'L:/2022_AID/AID_x2',
     "lq_val_root": 'L:/2022_AID/NWPU-RESISC45_x2',
     "learning_rate": 1e-4,
-    "epochs": 100,
+    "epochs": 10,
+    "repeat": 30,
     "threshold": 24,
     "checkpoint": False,
     "Img_Recon": True,
@@ -63,6 +63,7 @@ lq_val_root = hyper_params['lq_val_root']
 mode = hyper_params['mode']
 scale = hyper_params['scale']
 Epochs = hyper_params['epochs']
+repeat = hyper_params['repeat']
 lr = hyper_params['learning_rate']
 src_path = hyper_params['src_path']
 Img_Recon = hyper_params['Img_Recon']
@@ -89,7 +90,7 @@ if train_comet:
 # =                                     Data                                    =
 # ===============================================================================
 
-train_loader, val_loader = get_Remote_SuperResolution_Dataset(batch_size, gt_size, scale, lq_train_root, lq_val_root)
+train_loader, val_loader = get_Remote_SuperResolution_Dataset(batch_size, gt_size, scale, lq_train_root, lq_val_root, repeat)
 a = next(iter(train_loader))
 visualize_pair(train_loader, lq_size=lq_size, gt_size=gt_size, mode=mode)
 
@@ -98,13 +99,13 @@ visualize_pair(train_loader, lq_size=lq_size, gt_size=gt_size, mode=mode)
 # ===============================================================================
 
 colors = 1
-m_ecbsr = 5
-c_ecbsr = 16
+m_ecbsr = 8
+c_ecbsr = 32
 idt_ecbsr = 0
 act_type = 'prelu'
 
 generator = ECBSR(m_ecbsr, c_ecbsr, idt_ecbsr, act_type, scale, colors)
-
+torchsummary.summary(generator, input_size=(1, 128, 128), device='cpu')
 discriminator = define_D(1, 64, 'basic', use_sigmoid=True, norm='instance')
 
 # ===============================================================================
@@ -154,11 +155,11 @@ if Checkpoint:
 # =                                    Training                                 =
 # ===============================================================================
 
-# train(generator, optimizer_ft_G, loss_function_G_, eval_function_G,
-#       train_loader, val_loader, Epochs, exp_lr_scheduler_G,
-#       device, threshold, output_dir, train_writer, val_writer, experiment, train_comet, mode=mode)
+train(generator, optimizer_ft_G, loss_function_G, eval_function_G,
+      train_loader, val_loader, Epochs, exp_lr_scheduler_G,
+      device, threshold, output_dir, train_writer, val_writer, experiment, train_comet, mode=mode)
 
-train_GAN(generator, discriminator, optimizer_ft_G, optimizer_ft_D,
-          loss_function_G_, loss_function_G, loss_function_D, exp_lr_scheduler_G, exp_lr_scheduler_D,
-          eval_function_G, train_loader, val_loader, Epochs, device, threshold,
-          output_dir, train_writer, val_writer, experiment, train_comet)
+# train_GAN(generator, discriminator, optimizer_ft_G, optimizer_ft_D,
+#           loss_function_G_, loss_function_G, loss_function_D, exp_lr_scheduler_G, exp_lr_scheduler_D,
+#           eval_function_G, train_loader, val_loader, Epochs, device, threshold,
+#           output_dir, train_writer, val_writer, experiment, train_comet)

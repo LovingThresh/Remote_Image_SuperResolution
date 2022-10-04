@@ -53,7 +53,7 @@ class PairedImageDataset(Dataset):
     3. **folder**: Scan folders to generate paths. The rest.
     """
 
-    def __init__(self, dataroot_gt, dataroot_lq, gt_size, scale, transform, load_txt):
+    def __init__(self, dataroot_gt, dataroot_lq, gt_size, scale, transform, load_txt, repeat=1):
         self.dataroot_gt = dataroot_gt
         self.dataroot_lq = dataroot_lq
         self.gt_size = gt_size
@@ -61,10 +61,12 @@ class PairedImageDataset(Dataset):
         self.transform = transform
         self.load_txt = load_txt
         self.filelist = []
+        self.repeat = repeat
         with open(self.load_txt, 'r') as f:
             for line in f.readlines():
                 line = line.strip('\n')  # 去掉列表中每一个元素的换行符
                 self.filelist.append(line)
+        self.filelist = self.filelist * self.repeat
 
     def __getitem__(self, index):
         lq_path = os.path.join(self.dataroot_lq, self.filelist[index])

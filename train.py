@@ -27,11 +27,11 @@ accelerator = Accelerator()
 device = accelerator.device
 
 
-def get_Remote_SuperResolution_Dataset(batch_size, gt_size, scale, lq_train_root, lq_val_root):
+def get_Remote_SuperResolution_Dataset(batch_size, gt_size, scale, lq_train_root, lq_val_root, repeat=1):
     train_dataset = PairedImageDataset(r'L:\2022_AID\AID', lq_train_root, gt_size, scale, transform=transformer,
-                                       load_txt=r'L:\2022_AID\AID.txt')
+                                       load_txt=r'L:\2022_AID\AID.txt', repeat=repeat)
     val_dataset = PairedImageDataset(r'L:\2022_AID\NWPU-RESISC45', lq_val_root, gt_size, scale, transform=None,
-                                     load_txt=r'L:\2022_AID\NWPU-RESISC45_validation.txt')
+                                     load_txt=r'L:\2022_AID\NWPU-RESISC45_validation.txt', repeat=repeat)
 
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=True)
@@ -499,11 +499,11 @@ def train(training_model, optimizer, loss_fn, eval_fn,
                   .format(epoch, train_loss, val_loss, train_evaluation, val_evaluation))
 
             # 这一部分可以根据任务进行调整
-            if val_evaluation['eval_function_iou'] > threshold_value:
+            if val_evaluation['eval_function_psnr'] > threshold_value:
                 torch.save(training_model.state_dict(),
                            os.path.join(output_dir, 'save_model',
-                                        'Epoch_{}_eval_{}.pt'.format(epoch, val_evaluation['eval_function_iou'])))
-                threshold_value = val_evaluation['eval_function_iou']
+                                        'Epoch_{}_eval_{}.pt'.format(epoch, val_evaluation['eval_function_psnr'])))
+                threshold_value = val_evaluation['eval_function_psnr']
 
             # 验证阶段的结果可视化
             save_path = os.path.join(output_dir, 'save_fig')
