@@ -191,8 +191,8 @@ def train_epoch(train_model, train_load, Device, loss_fn, eval_fn, optimizer, sc
     scheduler.step()
 
     training_dict = {
-        'train_loss_mean': training_loss_mean,
-        'train_evaluation_mean': training_eval_mean,
+        'loss_mean': training_loss_mean,
+        'evaluation_mean': training_eval_mean,
     }
     return training_loss_mean, training_eval_mean, training_dict
 
@@ -355,8 +355,8 @@ def val_epoch(valid_model, val_load, Device, loss_fn, eval_fn, epoch, Epochs, mo
         print("-" * 80)
 
     valid_dict = {
-        'val_loss_mean': valid_loss_mean,
-        'val_evaluation_mean': valid_eval_mean
+        'loss_mean': valid_loss_mean,
+        'evaluation_mean': valid_eval_mean
     }
 
     return valid_loss_mean, valid_eval_mean, valid_dict
