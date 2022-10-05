@@ -115,7 +115,8 @@ discriminator = define_D(1, 64, 'basic', use_sigmoid=True, norm='instance')
 loss_function_D = {'loss_function_dis': nn.BCELoss()}
 loss_function_G_ = {'loss_function_dis': nn.BCELoss()}
 
-loss_function_G = {'content_loss': nn.L1Loss()}
+loss_function_G = {'content_loss': nn.L1Loss(),
+                   'perceptual_loss': perceptual_loss}
 
 eval_function_psnr = torchmetrics.functional.image.psnr.peak_signal_noise_ratio
 eval_function_ssim = torchmetrics.functional.image.ssim.structural_similarity_index_measure
@@ -155,11 +156,11 @@ if Checkpoint:
 # =                                    Training                                 =
 # ===============================================================================
 
-train(generator, optimizer_ft_G, loss_function_G, eval_function_G,
-      train_loader, val_loader, Epochs, exp_lr_scheduler_G,
-      device, threshold, output_dir, train_writer, val_writer, experiment, train_comet, mode=mode)
+# train(generator, optimizer_ft_G, loss_function_G, eval_function_G,
+#       train_loader, val_loader, Epochs, exp_lr_scheduler_G,
+#       device, threshold, output_dir, train_writer, val_writer, experiment, train_comet, mode=mode)
 
-# train_GAN(generator, discriminator, optimizer_ft_G, optimizer_ft_D,
-#           loss_function_G_, loss_function_G, loss_function_D, exp_lr_scheduler_G, exp_lr_scheduler_D,
-#           eval_function_G, train_loader, val_loader, Epochs, device, threshold,
-#           output_dir, train_writer, val_writer, experiment, train_comet)
+train_GAN(generator, discriminator, optimizer_ft_G, optimizer_ft_D,
+          loss_function_G_, loss_function_G, loss_function_D, exp_lr_scheduler_G, exp_lr_scheduler_D,
+          eval_function_G, train_loader, val_loader, Epochs, device, threshold,
+          output_dir, train_writer, val_writer, experiment, train_comet)

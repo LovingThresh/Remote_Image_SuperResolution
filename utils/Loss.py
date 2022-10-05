@@ -36,9 +36,11 @@ class PerceptualLoss:
         return loss
 
 
-def perceptual_loss(input, target):
+def perceptual_loss(input: torch.Tensor, target: torch.Tensor):
     P = PerceptualLoss(nn.MSELoss())
-    return 100 * P.get_loss(input, target)
+    input_ = input.repeat(1, 3, 1, 1)
+    target_ = target.repeat(1, 3, 1, 1)
+    return 100 * P.get_loss(input_, target_)
 
 
 def correlation(input, target):

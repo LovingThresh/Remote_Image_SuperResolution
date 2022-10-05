@@ -100,4 +100,4 @@ class PairedImageDataset(Dataset):
         return {'lq': img_lq[0:1], 'gt': img_gt[0:1], 'lq_RGB': img_lq, 'gt_RGB': img_gt, 'lq_path': lq_path, 'gt_path': gt_path}
 
     def __len__(self):
-        return len(self.filelist)
+        return 100  # len(self.filelist)
