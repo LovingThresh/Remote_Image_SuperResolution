@@ -554,10 +554,11 @@ def train_GAN(training_model_G, training_model_D,
 
             training_model_G.train(True)
             training_model_D.train(True)
-            val_loss_D, val_eval_D, val_loss_G, val_eval_G, valid_dict = \
-                val_generator_epoch(training_model_G, training_model_D,
-                                    val_load, Device, loss_function_G_, loss_fn_G, loss_fn_D,
-                                    eval_fn_G, epoch, epochs)
+            with torch.no_grad():
+                val_loss_D, val_eval_D, val_loss_G, val_eval_G, valid_dict = \
+                    val_generator_epoch(training_model_G, training_model_D,
+                                        val_load, Device, loss_function_G_, loss_fn_G, loss_fn_D,
+                                        eval_fn_G, epoch, epochs)
             write_summary(train_writer_summary, valid_writer_summary, train_dict, valid_dict, step=epoch)
 
             if B_comet:
