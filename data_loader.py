@@ -5,6 +5,7 @@
 # @File    : data_loader.py
 # @Software: PyCharm
 import os
+import shutil
 
 import cv2
 import torch
@@ -101,3 +102,11 @@ class PairedImageDataset(Dataset):
 
     def __len__(self):
         return len(self.filelist)
+
+
+def data_transfer(root_dir, dst_dir):
+    paths = os.listdir(root_dir)
+    for path in paths:
+        files = os.listdir(os.path.join(root_dir, path))
+        for file in files[:10]:
+            shutil.copyfile(os.path.join(root_dir, path, file), os.path.join(dst_dir, file))
