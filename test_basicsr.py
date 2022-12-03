@@ -33,6 +33,39 @@ def test_pipeline(root_path):
 
     # create model
     model = build_model(opt)
+    model.net_g.training = False
+
+    # from fvcore.nn import (ActivationCountAnalysis, FlopCountAnalysis,
+    #                        flop_count_str, flop_count_table, parameter_count)
+    # from fvcore.nn.print_model_statistics import _format_size
+    #
+    # inputs = torch.randn((1, 3, 85, 85))
+    # inputs = inputs.cuda()
+    # flops_ = FlopCountAnalysis(model.net_g, inputs)
+    # activations_ = ActivationCountAnalysis(model.net_g, inputs)
+    #
+    # flops = _format_size(flops_.total())
+    # activations = _format_size(activations_.total())
+    # params = _format_size(parameter_count(model.net_g)[''])
+    #
+    # flop_table = flop_count_table(
+    #     flops=flops_,
+    #     activations=activations_,
+    #     show_param_shapes=True,
+    # )
+    # print(flops)
+    # print(params)
+    #
+    # import time
+    # with torch.no_grad():
+    #     for i in range(10):
+    #         model.net_g(inputs)
+    # with torch.no_grad():
+    #     a = time.time()
+    #     for i in range(10):
+    #         model.net_g(inputs)
+    #     b = time.time()
+    #     print((b - a) / 10)
 
     for test_loader in test_loaders:
         test_set_name = test_loader.dataset.opt['name']

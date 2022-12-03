@@ -15,25 +15,29 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 import albumentations as A
 
-# def data_preparation(dataroot, scale, save_root):
-#     file_folders = os.listdir(dataroot)
-#     for file_folder in file_folders:
-#         file_list = os.listdir(os.path.join(dataroot, file_folder))
-#         os.mkdir(os.path.join(save_root, file_folder))
-#         for file in file_list:
-#             image = cv2.imread(os.path.join(dataroot, file_folder, file))
-#             image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
-#             H, W = image.shape[:2]
-#             L_image = cv2.resize(image, (int(H / scale), int(W / scale)))
-#             L_image = cv2.cvtColor(L_image, cv2.COLOR_YCrCb2BGR)
-#             cv2.imwrite(os.path.join(save_root, file_folder, file), L_image)
-#
-#
+
+def data_preparation(dataroot, scale, save_root):
+    file_folders = os.listdir(dataroot)
+    for file_folder in file_folders:
+        file_list = os.listdir(os.path.join(dataroot, file_folder))
+        # os.mkdir(os.path.join(save_root, file_folder))
+        for file in file_list:
+            image = cv2.imread(os.path.join(dataroot, file_folder, file))
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+            H, W = image.shape[:2]
+            L_image = cv2.resize(image, (int(H / scale), int(W / scale)))
+            L_image = cv2.resize(L_image, (int(H), int(W)))
+            L_image = cv2.cvtColor(L_image, cv2.COLOR_YCrCb2BGR)
+            cv2.imwrite(os.path.join(save_root, file), L_image)
+
 AID_root = 'L:/2022_AID/NWPU-RESISC45'
-# Scale = 4
-# Save_root = 'L:/2022_AID/NWPU-RESISC45_x4'
-# os.mkdir(Save_root)
-# data_preparation(AID_root, Scale, Save_root)
+
+Scale = 4
+Save_root = 'L:/2022_AID/NWPU-RESISC45_x4_resize'
+os.mkdir(Save_root)
+data_preparation(AID_root, Scale, Save_root)
+
+
 
 with open(r'L:/2022_AID/NWPU-RESISC45_validation.txt', 'w') as f:
     file_folders = os.listdir(AID_root)
@@ -90,7 +94,7 @@ class PairedImageDataset(Dataset):
             x, y = random.randint(0, img_w - w), random.randint(0, img_h - h)
             img_gt = img_gt[x:x + w, y:y + h, :]
             img_lq = img_lq[int(x / self.scale):int(x / self.scale) + int(w / self.scale),
-                            int(y / self.scale):int(y / self.scale) + int(h / self.scale)]
+                     int(y / self.scale):int(y / self.scale) + int(h / self.scale)]
 
         img_gt, img_lq = \
             transforms.ToTensor()(img_gt), transforms.ToTensor()(img_lq)
@@ -98,7 +102,8 @@ class PairedImageDataset(Dataset):
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img_gt), \
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))(img_lq)
 
-        return {'lq': img_lq[0:1], 'gt': img_gt[0:1], 'lq_RGB': img_lq, 'gt_RGB': img_gt, 'lq_path': lq_path, 'gt_path': gt_path}
+        return {'lq': img_lq[0:1], 'gt': img_gt[0:1], 'lq_RGB': img_lq, 'gt_RGB': img_gt, 'lq_path': lq_path,
+                'gt_path': gt_path}
 
     def __len__(self):
         return len(self.filelist)
